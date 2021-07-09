@@ -23,8 +23,7 @@ services:
         -Dredis.uri=redis://redis:6379
     volumes:
       - $LILA_REPOSITORY_DIR:/home/lichess/lila:delegated
-    ports:
-      - 9663:9663
+      - ./lila-cfg/base.conf:/home/lichess/lila/conf/base.conf:ro
     depends_on:
       - mongodb
       - redis
@@ -40,6 +39,7 @@ services:
         -Dredis.uri=redis://redis:6379
     volumes:
       - $LILA_WS_REPOSITORY_DIR:/lila-ws:delegated
+      - ./lila-cfg/base.conf:/home/lichess/lila/conf/base.conf:ro
     # ports:
     #   - 9664:9664
     depends_on:
