@@ -1,39 +1,33 @@
-ARG OPENJDK_TAG=14.0.2-jdk-buster
+ARG OPENJDK_TAG=18-ea-4-slim-buster
 FROM openjdk:${OPENJDK_TAG}
 
-ARG SBT_VERSION=1.3.13
+WORKDIR /home/lichess
 
-RUN if [ -z "$(command -v yum)" ] ; \
-    then \
-        curl -L -o sbt-$SBT_VERSION.deb https://dl.bintray.com/sbt/debian/sbt-$SBT_VERSION.deb && \
-        dpkg -i sbt-$SBT_VERSION.deb && \
-        rm sbt-$SBT_VERSION.deb && \
-        apt-get update && \
-        apt-get install sbt && \
-        sbt sbtVersion; \
-    else \
-        curl https://bintray.com/sbt/rpm/rpm | tee /etc/yum.repos.d/bintray-sbt-rpm.repo && \
-        yum update && \
-        yum install -y sbt-$SBT_VERSION && \
-        sbt sbtVersion; \
-    fi
+# TZ
+ARG TZ=America/Panama
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
+    echo $TZ > /etc/timezone
 
-ARG YARN_VERSION=1.22.4
-
-RUN apt-get update && apt-get install -y gnupg2 && \
-    apt-get install -y apt-transport-https ca-certificates && \
-    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
-    echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && \
-    apt-get update && \
-    apt-get install -y yarn=${YARN_VERSION}-1 && \
-    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
-    echo $TZ > /etc/timezone && \
+# NodeJS and Yarn
+# https://github.com/nodesource/distributions/blob/master/README.md
+ARG NODE_VERSION=lts
+RUN apt-get update -y && apt-get install -y curl && \
+    curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - && \
+    apt-get update -y && apt-get install -y nodejs && \
+    node -v && \
+    npm -v && \
+    npm install -g yarn && \
+    yarn -v && \
     yarn global add gulp
+
+# SBT
+RUN echo "deb https://repo.scala-sbt.org/scalasbt/debian all main" > /etc/apt/sources.list.d/sbt.list && \
+    echo "deb https://repo.scala-sbt.org/scalasbt/debian /" > /etc/apt/sources.list.d/sbt_old.list && \
+    curl -sL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x2EE0EA64E40A89B84B2DF73499E82A75642AC823" | apt-key add && \
+    apt-get update -y && apt-get install -y sbt && \
+    sbt sbtVersion;
 
 ENV LANG "en_US.UTF-8"
 ENV LC_CTYPE "en_US.UTF-8"
-ENV TZ=Etc/GMT
-
-WORKDIR /home/lichess
 
 ADD run.sh .
