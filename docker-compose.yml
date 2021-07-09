@@ -26,6 +26,14 @@ services:
     volumes:
       - $LILA_REPOSITORY_DIR:/home/lichess/lila:delegated
       - ./lila-cfg/base.conf:/home/lichess/lila/conf/base.conf:ro
+    # ports:
+    #   - 9663:9663
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.lichess.rule=Host(`lichess.yourdomain.com`)"
+      - "traefik.http.routers.lichess.entrypoints=websecure"
+      - "traefik.http.routers.lichess.tls.certresolver=letsencrypt-resolver"
+      - "traefik.http.services.lichess-svc.loadbalancer.server.port=9663"
     depends_on:
       - mongodb
       - redis
@@ -44,8 +52,19 @@ services:
       - ./lila-cfg/base.conf:/home/lichess/lila/conf/base.conf:ro
     # ports:
     #   - 9664:9664
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.lila-ws.rule=Host(`lila-ws.yourdomain.com`)"
+      - "traefik.http.routers.lila-ws.entrypoints=websecure"
+      - "traefik.http.routers.lila-ws.tls.certresolver=letsencrypt-resolver"
+      - "traefik.http.services.lila-ws-svc.loadbalancer.server.port=9664"
     depends_on:
       - lila
 
 volumes:
   lichess-mongodb:
+
+networks:
+  default:
+    external: true
+    name: traefik
