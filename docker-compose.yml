@@ -1,12 +1,14 @@
 version: '3.7'
 services:
   mongodb:
+    image: arm64v8/mongo:4.2.8
     # ports:
     #   - 27017:27017
     volumes:
       - lichess-mongodb:/data/db
 
   redis:
+    image: arm64v8/redis:6.2.4-alpine
     # ports:
     #   - 6379:6379
 
